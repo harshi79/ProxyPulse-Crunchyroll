@@ -1,0 +1,51 @@
+{
+  "name": "proxypulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProxyPulse \u2014 proxy discovery, validation, scoring and pool API for authorized Crunchyroll connectivity testing",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "shared",
+    "db",
+    "services/crunchyroll",
+    "worker",
+    "api"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "clean": "rm -rf shared/dist db/dist services/crunchyroll/dist worker/dist api/dist coverage .vitest-cache",
+    "typecheck": "npm run build --workspaces --if-present && npm run typecheck --workspaces --if-present && npm run typecheck:tests",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "npm run migrate --workspace @proxypulse/db",
+    "worker:dev": "npm run dev --workspace @proxypulse/worker",
+    "worker:start": "npm run start --workspace @proxypulse/worker",
+    "pipeline:once": "npm run pipeline:once --workspace @proxypulse/worker",
+    "demo:local": "node scripts/run-local-demo.mjs",
+    "api:dev": "npm run dev --workspace @proxypulse/api",
+    "api:deploy": "npm run deploy --workspace @proxypulse/api",
+    "verify": "npm run typecheck && npm run lint && npm run test",
+    "db:status": "npm run status --workspace @proxypulse/db",
+    "db:prune": "npm run prune --workspace @proxypulse/db"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.19.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^3.2.7"
+  }
+}

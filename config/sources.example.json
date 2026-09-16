@@ -1,0 +1,73 @@
+{
+  "_readme": [
+    "Example sources, all DISABLED. Copy the entries you want into config/sources.json and set",
+    "\"enabled\": true. Before enabling anything: read the publisher's terms and robots.txt, confirm",
+    "the list is meant to be consumed programmatically, and keep the request volume at one fetch per",
+    "source per refresh cycle (the worker does exactly that). Do not add sources that require",
+    "bypassing a paywall, CAPTCHA, rate limit or login, and do not scrape sites that forbid it.",
+    "",
+    "Fields: id (unique, [a-z0-9._-]{2,64}), kind (http-list | json-endpoint | local-file),",
+    "url or path, protocol (hint for entries without a scheme), itemsPath (json only),",
+    "fields (json field mapping, first listed name wins), maxEntries (hard cap per source),",
+    "trust (0-1 source reliability, feeds scoring), note (free text)."
+  ],
+  "sources": [
+    {
+      "id": "proxyscrape-http",
+      "kind": "http-list",
+      "enabled": false,
+      "url": "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&ssl=all",
+      "protocol": "http",
+      "trust": 0.55,
+      "maxEntries": 5000,
+      "note": "Public API published for programmatic consumption."
+    },
+    {
+      "id": "proxifly-socks5",
+      "kind": "http-list",
+      "enabled": false,
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
+      "protocol": "socks5",
+      "trust": 0.45,
+      "maxEntries": 4000,
+      "note": "Static file on a public raw-content host."
+    },
+    {
+      "id": "thespeedx-http",
+      "kind": "http-list",
+      "enabled": false,
+      "url": "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
+      "protocol": "http",
+      "trust": 0.35,
+      "maxEntries": 4000,
+      "note": "Plain `host:port` lines; frequently stale, hence the lower trust."
+    },
+    {
+      "id": "internal-seed-api",
+      "kind": "json-endpoint",
+      "enabled": false,
+      "url": "https://example.com/api/proxies?format=json",
+      "itemsPath": "data.proxies",
+      "trust": 0.8,
+      "fields": {
+        "endpoint": ["proxy"],
+        "host": ["ip", "host", "address"],
+        "port": ["port", "proxy_port"],
+        "protocol": ["protocol", "scheme", "type"],
+        "country": ["country", "country_code"],
+        "anonymity": ["anonymity", "anon", "google"],
+        "username": ["username", "user"],
+        "password": ["password", "pass"]
+      },
+      "note": "Shape example: point this at an inventory API you own or are explicitly allowed to read."
+    },
+    {
+      "id": "private-seed-file",
+      "kind": "local-file",
+      "enabled": false,
+      "path": "data/seed-proxies.txt",
+      "trust": 0.9,
+      "note": "Offline seed file. Paths resolve against the process CWD and may not traverse outside it."
+    }
+  ]
+}

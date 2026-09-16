@@ -1,0 +1,33 @@
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.vitest-cache/
+.wrangler/
+.dev.vars
+.dev.vars.local
+
+# local databases / fixtures output
+data/
+*.db
+*.db-wal
+*.db-shm
+tmp/
+
+# environment / secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+
+# offline demo scratch dir (fixtures + throwaway sqlite file)
+.demo-tmp/

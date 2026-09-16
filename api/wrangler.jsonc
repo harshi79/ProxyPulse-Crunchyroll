@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/wrangler/main/src/config-schema/schema.json",
+  "name": "proxypulse-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "CACHE_ENABLED": "1",
+    "RATE_LIMIT_MAX": "120",
+    "RATE_LIMIT_WINDOW_SECONDS": "60",
+    "UPSTREAM_TIMEOUT_MS": "10000",
+    // Keep-alive for a Render *free* instance, which sleeps when nothing calls it. Set to "0" to stop
+    // the scheduled invocation entirely, or "trigger" to have the edge run the refresh cycles instead of
+    // the worker's own scheduler.
+    "CYCLE_TRIGGER_ENABLED": "1",
+    "CYCLE_TRIGGER_MODE": "keepalive",
+  },
+
+  // Optional, free, and what makes a zero-cost deployment actually stay awake: every 5 minutes the edge
+  // GETs the origin's /health (mode "keepalive") or POSTs /internal/cycle/run (mode "trigger").
+  // Remove this block if you never want the Worker to call the origin on a schedule.
+  "triggers": {
+    "crons": ["*/5 * * * *"],
+  },
+  // Secrets (never commit these):
+  //   npx wrangler secret put INTERNAL_API_TOKEN   # same value as the worker's INTERNAL_API_TOKEN
+  //   npx wrangler secret put RENDER_ORIGIN        # or keep it in `vars` - it is not a secret
+  //   npx wrangler secret put API_PUBLIC_KEYS      # comma separated reader keys, e.g. "pp_live_xxx,pp_live_yyy"
+  //
+  // Optional: the KV namespace that makes the rate limiter exact across edges. Without it the
+  // limiter fails open (per-isolate counters only), which is documented in API.md.
+  // NOTE for Cloudflare's free tier: KV allows 1,000 writes/day, and the limiter writes per request —
+  // so leave this unbound on the free plan and keep the (already shipped) 120 req/min soft limit.
+  //   npx wrangler kv namespace create RATE_LIMIT_KV
+  //   "kv_namespaces": [{ "binding": "RATE_LIMIT_KV", "id": "<paste the id here>" }],
+  //
+  // Custom domain / route (fill in once the zone exists):
+  //   "routes": [{ "pattern": "api.example.com", "custom_domain": true }],
+  "workers_dev": true,
+}

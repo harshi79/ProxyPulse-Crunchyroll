@@ -1,0 +1,23 @@
+{
+  "name": "@proxypulse/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProxyPulse public API gateway running on Cloudflare Workers",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "wrangler dev",
+    "preview": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@proxypulse/shared": "0.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260914.1",
+    "wrangler": "^4.131.1"
+  }
+}

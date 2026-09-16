@@ -1,0 +1,25 @@
+# Small public-list shaped fixture used by the tests and the offline demo.
+# It intentionally mixes formats, a duplicate, a comment block and malformed lines.
+HTTP proxy list (sanitised sample)
+===================================
+
+http://203.0.113.10:8080
+http://alice:secret@203.0.113.11:3128
+203.0.113.12:80
+203.0.113.13:1080:admin:pw
+
+SOCKS5
+socks5://203.0.113.20:1080
+socks5://203.0.113.21:1080
+socks5://203.0.113.20:1080
+
+SOCKS4
+socks4://203.0.113.30:1080
+
+HTTPS
+https://203.0.113.40:8443
+
+malformed line without a port
+1.2.3
+http://
+256.300.1.1:8080
