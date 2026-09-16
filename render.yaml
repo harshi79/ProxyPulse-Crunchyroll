@@ -1,0 +1,88 @@
+# Render blueprint for the ProxyPulse worker (the background pipeline + internal API).
+#
+#   Render → New → Blueprint → point at this repository.
+#
+# The Cloudflare API gateway is deployed separately (`npm run api:deploy`); this file only needs the
+# public URL of the service below to be copied into the Worker's RENDER_ORIGIN variable.
+#
+# Secrets are never stored in this file: `sync: false` means Render asks for the value once and keeps
+# it out of Git; `generateValue` creates a strong random token on first deploy.
+
+services:
+  - type: web
+    name: proxypulse-worker
+    runtime: node
+    # `free` = 512 MB / 0.1 CPU and it sleeps after ~15 idle minutes. The Cloudflare Worker's cron trigger
+    # (see api/wrangler.jsonc) pokes /health every 5 minutes, which keeps it awake at no cost; if you skip
+    # the cron, `RUN_CYCLE_ON_STARTUP=1` still means every wake-up refreshes the pool. `starter` (US$7)
+    # only differs by never sleeping.
+    plan: free
+    # Pick whichever region is nearest the Turso database; free instances are offered in most regions.
+    region: oregon
+    rootDir: .
+    buildCommand: npm ci && npm run build
+    startCommand: npm run worker:start
+    healthCheckPath: /health
+    autoDeploy: true
+    # Free instances are limited to 512 MB: keep the per-cycle caps in .env.example (or lower them) so a
+    # cycle never has to hold more than a few thousand rows in memory.
+
+    envVars:
+      # Node version comes from .node-version (nvm-style "22" = latest 22.x); package.json pins `>=22`.
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: SERVICE_NAME
+        value: crunchyroll
+
+      # ── Turso / libSQL ───────────────────────────────────────────────────
+      # Create the database at https://turso.tech, then:
+      #   turso db create proxypulse && turso db show --url proxypulse && turso db tokens create proxypulse
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+
+      # ── Internal API auth (shared with the Cloudflare Worker) ────────────
+      - key: INTERNAL_API_TOKEN
+        generateValue: true
+        sync: false
+
+      # ── Cadence and policy ───────────────────────────────────────────────
+      - key: REFRESH_INTERVAL_MINUTES
+        value: '15'
+      - key: RUN_CYCLE_ON_STARTUP
+        value: '1'
+      - key: POOL_MAX_ACTIVE
+        value: '5000'
+      - key: DISCOVERY_CANDIDATE_CAP
+        value: '5000'
+      - key: VALIDATION_MAX_PER_CYCLE
+        value: '800'
+      - key: VALIDATION_CONCURRENCY
+        value: '24'
+      - key: DISCOVERY_CONCURRENCY
+        value: '4'
+
+      # ── Authorized service check (polite by construction) ────────────────
+      - key: CR_CHECK_ENABLED
+        value: '1'
+      - key: CR_RATE_LIMIT_PER_MINUTE
+        value: '30'
+      - key: CR_MAX_CHECKS_PER_CYCLE
+        value: '250'
+      - key: CR_RESPECT_ROBOTS
+        value: '1'
+
+      # ── Optional: Cloudflare Queues as the job transport ─────────────────
+      # Leave QUEUE_DRIVER=memory unless you run more than one replica or want the edge to
+      # enqueue work. See docs/DEPLOYMENT.md for the `wrangler queues` commands.
+      - key: QUEUE_DRIVER
+        value: memory
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_QUEUE_ID
+        sync: false
+      - key: CLOUDFLARE_QUEUES_TOKEN
+        sync: false

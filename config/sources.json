@@ -1,0 +1,20 @@
+{
+  "_readme": [
+    "Default discovery configuration for ProxyPulse. Sources are opt-in on purpose:",
+    "only fetch lists that are publicly available AND whose publisher permits automated",
+    "collection, and keep request volume modest (one fetch per source per refresh cycle).",
+    "See config/sources.example.json for ready-to-enable public providers, and",
+    "docs/DEVELOPMENT.md for the fields this file accepts."
+  ],
+  "sources": [
+    {
+      "id": "sample-fixtures",
+      "kind": "local-file",
+      "enabled": false,
+      "path": "tests/fixtures/proxies.sample.txt",
+      "protocol": "http",
+      "trust": 0.4,
+      "note": "Small curated list used by the tests and the offline demo (`npm run demo:local`)."
+    }
+  ]
+}

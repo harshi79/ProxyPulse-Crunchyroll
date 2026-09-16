@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+data
+*.db
+*.db-wal
+*.db-shm
+package-lock.json
+.wrangler
+LICENSE

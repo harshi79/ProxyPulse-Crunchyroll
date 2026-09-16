@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: typecheck · lint · test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Typecheck (workspaces + tests)
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Unit and integration tests
+        run: npm test -- --reporter=dot
+
+      - name: Offline pipeline demo (self-asserting)
+        run: npm run demo:local
+
+      - name: Migrations against a throwaway file database
+        run: |
+          DATABASE_URL=file:./tmp/ci.db node db/dist/cli.js migrate
+          DATABASE_URL=file:./tmp/ci.db node db/dist/cli.js status
+
+  api-worker:
+    name: Cloudflare Worker dry run
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Typecheck the worker
+        run: npm run typecheck --workspace @proxypulse/api
+      - name: Dry run deploy (validates wrangler config without publishing)
+        working-directory: api
+        env:
+          RENDER_ORIGIN: https://example.invalid
+          INTERNAL_API_TOKEN: ci_only_token_not_a_secret_0123456789
+        run: npx wrangler deploy --dry-run

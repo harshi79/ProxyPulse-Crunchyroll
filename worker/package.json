@@ -1,0 +1,23 @@
+{
+  "name": "@proxypulse/worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProxyPulse background worker: discovery, validation, service checks, scoring, rolling pool, internal API",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "npm run build && node --enable-source-maps --env-file-if-exists=../.env dist/index.js",
+    "start": "node --enable-source-maps dist/index.js",
+    "pipeline:once": "npm run build && node --enable-source-maps --env-file-if-exists=../.env dist/bin/run-cycle.js",
+    "pipeline:normalize": "node dist/bin/normalize.js",
+    "token": "node dist/bin/token.js"
+  },
+  "dependencies": {
+    "@proxypulse/db": "0.1.0",
+    "@proxypulse/service-crunchyroll": "0.1.0",
+    "@proxypulse/shared": "0.1.0"
+  }
+}

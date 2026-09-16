@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@proxypulse/shared": ["shared/src"],
+      "@proxypulse/db": ["db/src"],
+      "@proxypulse/service-crunchyroll": ["services/crunchyroll/src"],
+      "@proxypulse/worker": ["worker/src"]
+    }
+  },
+  "include": ["tests/**/*.ts", "vitest.config.ts", "tsconfig.test.json"]
+}
