@@ -93,7 +93,7 @@ curl -H "authorization: Bearer $API_KEY" "https://api.example.com/pool?limit=5&p
 | `worker/`               | discovery providers, validation engine, pool manager, queues, pipeline, scheduler, internal HTTP API                              |
 | `api/`                  | Cloudflare Worker: public gateway (auth, rate limit, cache, envelope)                                                             |
 | `scripts/`              | mock proxy/target servers and the offline demo                                                                                    |
-| `tests/`                | 13 vitest suites, 240 tests — fixtures + loopback mocks only, no live internet                                                    |
+| `tests/`                | 13 vitest suites, 241 tests — fixtures + loopback mocks only, no live internet                                                    |
 | `docs/`                 | [ARCHITECTURE](docs/ARCHITECTURE.md) · [API](docs/API.md) · [DEVELOPMENT](docs/DEVELOPMENT.md) · [DEPLOYMENT](docs/DEPLOYMENT.md) |
 
 ## Configuration

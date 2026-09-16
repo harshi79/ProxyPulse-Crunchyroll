@@ -6,6 +6,9 @@
  * codebase imports @libsql/client directly, so swapping drivers later stays a one-file change.
  */
 
+import { mkdirSync } from 'node:fs';
+import { dirname, isAbsolute, resolve } from 'node:path';
+
 import { createClient, type Client, type InStatement, type InValue } from '@libsql/client';
 
 export interface DbOptions {
@@ -48,8 +51,28 @@ export function splitSqlStatements(sql: string): string[] {
     .filter((statement) => statement.length > 0);
 }
 
+/**
+ * A `file:` URL under a folder that does not exist yet is SQLITE_CANTOPEN (14) with a message nobody
+ * recognises. Creating the parent is friendlier on a first run — `file:./data/proxypulse.db` should work
+ * after a fresh clone, without a separate `mkdir`.
+ */
+function ensureLocalDatabaseDirectory(url: string): void {
+  if (!url.startsWith('file:')) return;
+  const path = url.slice('file:'.length);
+  if (path.length === 0 || path.startsWith(':memory:')) return;
+  const withoutQuery = path.split('?')[0] ?? path;
+  if (withoutQuery.length === 0) return;
+  const absolute = isAbsolute(withoutQuery) ? withoutQuery : resolve(process.cwd(), withoutQuery);
+  try {
+    mkdirSync(dirname(absolute), { recursive: true });
+  } catch {
+    /* a real permission problem surfaces from the connection attempt, with a better message */
+  }
+}
+
 export function createDb(options: DbOptions): DbHandle {
   const url = options.url;
+  ensureLocalDatabaseDirectory(url);
   const client = createClient(
     url.startsWith('libsql://') || url.startsWith('http')
       ? { url, authToken: options.authToken }

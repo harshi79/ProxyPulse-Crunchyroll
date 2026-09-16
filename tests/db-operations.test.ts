@@ -1,3 +1,6 @@
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
@@ -565,5 +568,33 @@ describe('pool statistics', () => {
       nowIso: NOW,
     });
     expect(result.validation_results).toBeGreaterThan(0);
+  });
+});
+
+describe('database file handling', () => {
+  it('creates the parent directory of a file: database instead of failing with SQLITE_CANTOPEN', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'proxypulse-dbdir-'));
+    const url = `file:${join(root, 'data', 'nested', 'pool.db')}`;
+    try {
+      const handle = createDb({ url });
+      const applied = await applyMigrations(handle, { dir: findMigrationsDir() });
+      expect(applied.applied.length).toBeGreaterThan(0);
+      await handle.run('INSERT INTO meta (key, value, updated_at) VALUES (?, ?, ?)', [
+        META_KEYS.lastPruneAt,
+        '2026-09-14T10:00:00.000Z',
+        NOW,
+      ]);
+      expect(
+        (
+          await handle.get<{ value: string }>('SELECT value FROM meta WHERE key = ?', [
+            META_KEYS.lastPruneAt,
+          ])
+        )?.value,
+      ).toBe('2026-09-14T10:00:00.000Z');
+      handle.close();
+      expect(existsSync(join(root, 'data', 'nested', 'pool.db'))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

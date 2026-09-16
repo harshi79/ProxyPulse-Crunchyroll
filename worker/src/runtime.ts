@@ -5,8 +5,6 @@
  * the tests differ only in the options they pass.
  */
 
-import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
 import type { Server } from 'node:http';
 
 import { createLogger, LOG_EVENTS, newJobId, redactUrl, type Logger } from '@proxypulse/shared';
@@ -84,19 +82,6 @@ export interface WorkerRuntime {
 
 const SHUTDOWN_GRACE_MS = 25_000;
 
-/** `file:./data/x.db` should not fail because the folder does not exist yet. */
-function ensureLocalDatabaseParent(url: string, cwd: string): void {
-  if (!url.startsWith('file:')) return;
-  const path = url.slice('file:'.length);
-  if (path.length === 0 || path === ':memory:') return;
-  const absolute = path.startsWith('/') ? path : resolve(cwd, path);
-  try {
-    mkdirSync(dirname(absolute), { recursive: true });
-  } catch {
-    /* a permission problem will surface from the connection attempt itself, with a better message */
-  }
-}
-
 export async function createRuntime(options: RuntimeOptions = {}): Promise<WorkerRuntime> {
   const config =
     options.config ?? loadConfig({ env: options.env ?? process.env, cwd: options.cwd });
@@ -112,7 +97,6 @@ export async function createRuntime(options: RuntimeOptions = {}): Promise<Worke
   const version = options.version ?? '0.1.0';
 
   const ownsDb = options.db === undefined;
-  if (ownsDb) ensureLocalDatabaseParent(config.db.url, options.cwd ?? process.cwd());
   const db = options.db ?? createDb({ url: config.db.url, authToken: config.db.authToken });
 
   if (options.migrate !== false) {
